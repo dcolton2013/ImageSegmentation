@@ -1,0 +1,2 @@
+# ImageSegmentation
+Cloud detection algorithm.
