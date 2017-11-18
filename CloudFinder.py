@@ -9,22 +9,28 @@ Created on Tue Oct 31 21:08:12 2017
 """
 
 from scipy import misc
+from sklearn import svm
 import os, sys
 import matplotlib.pyplot as plt
 import time
 import numpy as np
 
-#Sky pixels arrays
-#150
-cloudy_test_X = np.empty((0,3), int)
-cloudy_test_y = np.empty((0,1), int)
+#sky pixels
+#150 images
+cloudy_train_X = np.empty((0,3))
+cloudy_train_y = np.empty((0,1))
+#131 images
+clear_train_X  = np.empty((0,3))
+clear_train_y = np.empty((0,1))
 
-#131
-clear_test_X  = np.empty((0,3), int)
-clear_test_y = np.empty((0,1), int)
 
-avgBlueClear = []
-avgBlueCloudy = []
+cloudy_test_X = np.empty((0,3))
+cloudy_test_y = np.empty((0,1))
+clear_test_X  = np.empty((0,3))
+clear_test_y = np.empty((0,1))
+
+#avgBlueClear = []
+#avgBlueCloudy = []
 
 #def avgBlueness(array):  
 #    avgs = []
@@ -41,7 +47,7 @@ avgBlueCloudy = []
 #    return avgs       
         
 def cloudyImages(cloudy,path,mask):
-    temp_X = np.empty((0,3), int)
+    temp_X = np.empty((0,3))
     
     for file in cloudy:
         try:
@@ -62,12 +68,12 @@ def cloudyImages(cloudy,path,mask):
         except Exception as e:
             #error reading image
             print(e)
+            print("here")
     
-
     return temp_X
                
 def clearImages(clear,path,mask):
-    temp  = np.empty((0,3), int)
+    temp_X  = np.empty((0,3))
     for file in clear:
         try:
             if (file == ".DS_Store"):
@@ -77,7 +83,7 @@ def clearImages(clear,path,mask):
             resized_img = misc.imresize(img,(70,80)) 
             resized_img.flatten();
                                
-            temp = np.concatenate( (temp,resized_img[mask==255] ) )
+            temp_X = np.concatenate( (temp_X,resized_img[mask==255] ) )
             
             #plt.figure(file)
             #plt.imshow(img)
@@ -85,7 +91,7 @@ def clearImages(clear,path,mask):
         except Exception as e:
             #error reading image
             print(e)
-    return temp
+    return temp_X
 
 ############## 4232
 cloudy4232 = [f for f in os.listdir("./Cameras/4232/cloudy") if os.path.exists]
@@ -95,8 +101,8 @@ mask4232 = misc.imresize(mask4232,(70,80),interp = 'nearest')
 path_cloudy_4232 = os.path.join(os.getcwd(), 'Cameras/4232/cloudy/')
 path_clear_4232 = os.path.join(os.getcwd(), 'Cameras/4232/clear/')
 
-cloudy_test_X= np.concatenate( (cloudy_test_X,cloudyImages(cloudy4232,path_cloudy_4232,mask4232) ))
-clear_test_X = np.concatenate( (clear_test_X,clearImages(clear4232,path_clear_4232,mask4232) ))
+cloudy_train_X= np.concatenate( (cloudy_train_X,cloudyImages(cloudy4232,path_cloudy_4232,mask4232) ))
+clear_train_X = np.concatenate( (clear_train_X,clearImages(clear4232,path_clear_4232,mask4232) ))
 ##############        
 
 ############## 7371
@@ -107,8 +113,8 @@ mask7371 = misc.imresize(mask7371,(70,80),interp = 'nearest')
 path_cloudy_7371 = os.path.join(os.getcwd(), 'Cameras/7371/cloudy/')
 path_clear_7371 = os.path.join(os.getcwd(), 'Cameras/7371/clear/')
 
-cloudy_test_X = np.concatenate( (cloudy_test_X,cloudyImages(cloudy7371,path_cloudy_7371,mask7371) ))
-clear_test_X = np.concatenate( (clear_test_X,clearImages(clear7371,path_clear_7371,mask7371) ))
+cloudy_train_X = np.concatenate( (cloudy_train_X,cloudyImages(cloudy7371,path_cloudy_7371,mask7371) ))
+clear_train_X = np.concatenate( (clear_train_X,clearImages(clear7371,path_clear_7371,mask7371) ))
 ##############
 
 ############## 9112
@@ -119,8 +125,8 @@ mask9112 = misc.imresize(mask9112,(70,80),interp = 'nearest')
 path_cloudy_9112 = os.path.join(os.getcwd(), 'Cameras/9112/cloudy/')
 path_clear_9112 = os.path.join(os.getcwd(), 'Cameras/9112/clear/')
 
-cloudy_test_X = np.concatenate( (cloudy_test_X,cloudyImages(cloudy9112,path_cloudy_9112,mask9112) ))
-clear_test_X = np.concatenate( (clear_test_X,clearImages(clear9112,path_clear_9112,mask9112) ))
+cloudy_train_X = np.concatenate( (cloudy_train_X,cloudyImages(cloudy9112,path_cloudy_9112,mask9112) ))
+clear_train_X = np.concatenate( (clear_train_X,clearImages(clear9112,path_clear_9112,mask9112) ))
 ##############
 
 ############## 10870
@@ -131,8 +137,8 @@ mask10870 = misc.imresize(mask10870,(70,80),interp = 'nearest')
 path_cloudy_10870 = os.path.join(os.getcwd(), 'Cameras/10870/cloudy/')
 path_clear_10870 = os.path.join(os.getcwd(), 'Cameras/10870/clear/')
 
-cloudy_test_X = np.concatenate( (cloudy_test_X,cloudyImages(cloudy10870,path_cloudy_10870,mask10870) ))
-clear_test_X = np.concatenate( (clear_test_X,clearImages(clear10870,path_clear_10870,mask10870) ))
+cloudy_train_X = np.concatenate( (cloudy_train_X,cloudyImages(cloudy10870,path_cloudy_10870,mask10870) ))
+clear_train_X = np.concatenate( (clear_train_X,clearImages(clear10870,path_clear_10870,mask10870) ))
 ##############
 
 ############## 19106
@@ -147,10 +153,21 @@ cloudy_test_X = np.concatenate( (cloudy_test_X,cloudyImages(cloudy19106,path_clo
 clear_test_X = np.concatenate( (clear_test_X,clearImages(clear19106,path_clear_19106,mask19106) ))
 ##############
 
+cloudy_train_y = np.ones(np.shape(cloudy_train_X)[0])
+clear_train_y = np.zeros(np.shape(clear_train_X)[0])
+Xtrain = np.concatenate((cloudy_train_X,clear_train_X))
+ytrain = np.concatenate((cloudy_train_y,clear_train_y))
+
+
+clf = svm.SVC(verbose=True)
+clf.fit(Xtrain[::100, :],ytrain[::100])   
+#   METHOD 1 #############################  
+#   testing -- created testX at line 152
+## initial method one, working on implementing different features to improve percent error
+#
 cloudy_test_y = np.ones(np.shape(cloudy_test_X)[0])
 clear_test_y = np.zeros(np.shape(clear_test_X)[0])
 
-#calculate avg blueness array
-#avgBlueCloudy = avgBlueness(cloudy_test_X)
-#avgBlueClear = avgBlueness(clear_test_X)
-
+Xtest = np.concatenate((cloudy_test_X,clear_test_X))
+ytest = np.concatenate((cloudy_test_y, clear_test_y))
+yPredictions = clf.predict(Xtest) 
