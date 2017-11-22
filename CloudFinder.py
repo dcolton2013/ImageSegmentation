@@ -66,7 +66,8 @@ def createDataset(cloudy,path,mask):
             
         except Exception as e:
             #error reading image
-            print(e)    
+            #print(e)  
+            print("", end = "")
     return temp_X
                
 ############## 4232
@@ -141,8 +142,8 @@ Xtest = np.concatenate((cloudy_test_X,clear_test_X))
 ytest = np.concatenate((cloudy_test_y, clear_test_y))
  
 #   METHOD 1 #############################  
-## initial method one, working on implementing different features to improve percent error
-##rougly random guesser 48% error
+##intial feature
+##########################################
 clf_svm = svm.SVC(verbose=True)
 clf_svm.fit(Xtrain[::100, :],ytrain[::100])  
 yPredictionsSVM = clf_svm.predict(Xtest) 
@@ -150,7 +151,7 @@ errorsSVM = np.abs(ytest - yPredictionsSVM)
 peSVM = np.sum(np.abs(ytest - yPredictionsSVM))/np.size(ytest)
 
 #   METHOD 2 ############################
-##  initial feature,     43% error
+##  initial feature
 ######################################
 clf_dt = DecisionTreeClassifier(random_state = 0)
 clf_dt.fit(Xtrain[::100, :],ytrain[::100])
@@ -160,10 +161,10 @@ errorsDT = np.abs(ytest - yPredictionsDT)
 peDT = np.sum(np.abs(ytest - yPredictionsDT))/np.size(ytest)
 
 # EVALUATION ########################
-print("\n\nSVM percent error: ", peSVM)
-print("Decision Tree Classifier percent error: ", peDT)
-print("The better predictor for our data: ",end = "")
+print("\n\nSVM percent error:\t\t\t", peSVM)
+print("Decision Tree Classifier percent error:\t", peDT)
+print("The better predictor for our data:",end = "")
 if (peSVM < peDT):
     print("SVM")
 else:
-    print("Decision Tree Classifier")
+    print("\t Decision Tree Classifier")
