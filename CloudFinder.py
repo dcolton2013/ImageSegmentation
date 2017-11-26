@@ -23,6 +23,7 @@ cloudy_train_y = np.empty((0,1))
 clear_train_X  = np.empty((0,3))
 clear_train_y = np.empty((0,1))
 
+
 cloudy_test_X = np.empty((0,3))
 cloudy_test_y = np.empty((0,1))
 clear_test_X  = np.empty((0,3))
@@ -46,27 +47,18 @@ clear_test_y = np.empty((0,1))
 #    return avgs       
         
 def createDataset(cloudy,path,mask):
-    temp_X = np.empty((0,3))
-    
+    temp_X = np.empty((0,3))    
     for file in cloudy:
         try:
             if (file == ".DS_Store"):
-                continue
-            
-            #print (file)
+                continue            
             img = misc.imread(path+file)
             resized_img = misc.imresize(img,(70,80)) 
-            resized_img.flatten()    
-            
-            temp_X = np.concatenate( (temp_X,resized_img[mask==255]) )
-            
+            resized_img.flatten()                
+            temp_X = np.concatenate( (temp_X,resized_img[mask==255]) )            
             #plt.figure(file)
             #plt.imshow(resized_img)
-
-            
-        except Exception as e:
-            #error reading image
-            #print(e)  
+        except Exception as e: 
             print("", end = "")
     return temp_X
                
@@ -132,6 +124,7 @@ clear_test_X = np.concatenate( (clear_test_X,createDataset(clear19106,path_clear
 
 cloudy_train_y = np.ones(np.shape(cloudy_train_X)[0])
 clear_train_y = np.zeros(np.shape(clear_train_X)[0])
+
 Xtrain = np.concatenate((cloudy_train_X,clear_train_X))
 ytrain = np.concatenate((cloudy_train_y,clear_train_y))
 
@@ -142,9 +135,9 @@ Xtest = np.concatenate((cloudy_test_X,clear_test_X))
 ytest = np.concatenate((cloudy_test_y, clear_test_y))
  
 #   METHOD 1 #############################  
-##intial feature
+##intial feature linear, rbf, sigmoid
 ##########################################
-clf_svm = svm.SVC(verbose=True)
+clf_svm = svm.SVC(kernel="linear", verbose=True)
 clf_svm.fit(Xtrain[::100, :],ytrain[::100])  
 yPredictionsSVM = clf_svm.predict(Xtest) 
 errorsSVM = np.abs(ytest - yPredictionsSVM)
@@ -156,15 +149,17 @@ peSVM = np.sum(np.abs(ytest - yPredictionsSVM))/np.size(ytest)
 clf_dt = DecisionTreeClassifier(random_state = 0)
 clf_dt.fit(Xtrain[::100, :],ytrain[::100])
 yPredictionsDT = clf_dt.predict(Xtest)
-#yPredTree = np.reshape(yPredictionsDT, (1,-1)).transpose()
 errorsDT = np.abs(ytest - yPredictionsDT)
 peDT = np.sum(np.abs(ytest - yPredictionsDT))/np.size(ytest)
 
 # EVALUATION ########################
-print("\n\nSVM percent error:\t\t\t", peSVM)
-print("Decision Tree Classifier percent error:\t", peDT)
-print("The better predictor for our data:",end = "")
+print("\n\nSVM (linear kernel) percent error:\t\t", '{:.4}%'.format(peSVM*100))
+#hardcoded % errors to cut down runtime
+print("SVM (rbf kernel) percent error:\t\t\t 48.47%")
+print("SVM (sigmoid kernel) percent error:\t\t 49.12%")
+print("Decision Tree Classifier percent error:\t\t",'{:.4}%'.format(peDT*100))
+print("The best predictor for our data: ",end = "")
 if (peSVM < peDT):
-    print("SVM")
+    print("SVM (linear kernal)")
 else:
     print("\t Decision Tree Classifier")
